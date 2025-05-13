@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="../../../dist/vue.global.js"></script>
+</head>
+<body>
+
+
+<div id="app"></div>
+
+<script>
+    const app = Vue.createApp({
+        template:`
+        <button @click="increment">+1</button>
+        <div>当前值：{{number}}</div>
+        `,
+        //data函数如何挂载到DOM中的
+        data() {
+            return {
+                number:1
+            }
+        },
+        methods:{
+            increment(){
+                this.number++;
+            }
+        },
+        beforeMount() {
+            console.log('beforeMount')
+        },
+        mounted() {
+            console.log('mounted')
+        }
+    });
+
+    /**
+     * 1. data如何挂载？ instance.data = reactive(data); defineProperty(instance.ctx,key,{get(){ return data[key] }})
+     * 2. setup里的ref如何挂载？
+     * 2. 挂载后如何渲染到DOM里：
+     * 2.1 编译成render函数后，属性直接写在函数里，指向了proxy，proxy内部会处理指向instance.data。最后render函数执行返回对应的VNode
+     * 2.2 查看VNode具体是如何渲染的？
+     * 3. 事件调用后如何修改响应式属性？
+     * 4. 响应式属性修改后如何触发DOM更新？
+     **/ 
+
+  app.mount('#app');
+
+</script>
+</body>
+</html>

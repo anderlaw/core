@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="../../../dist/vue.global.js"></script>
+</head>
+<body>
+
+
+<div id="app"></div>
+
+<script>
+    const {ref,reactive,onBeforeMount,onMounted} = Vue;
+    const app = Vue.createApp({
+        // `@click="()=>increment()"` =>  `onClick: ()=>increment()`
+        // `@click="increment()"` => `$event => (increment())` 
+        // `@click="increment"` => `()=>{ debugger; number.value++;//data.number== }` 
+        template:`
+        <button @click="increment">+1</button>
+        <div>当前值：{{number}}</div>
+        `,
+        setup() {
+            const number = ref(1)
+            // const data = reactive({
+            //     number:1
+            // })
+
+            const increment = (...args) => {
+                console.log(args);
+                number.value++;
+                // data.number++
+            }
+
+            onMounted(()=>{
+                console.log('onMounted');
+                throw '中断代码';
+                console.log('123123')
+            })
+            onBeforeMount(()=>{
+                console.log('onBeforeMount')
+            })
+            // 将 ref 暴露给模板;绑定到setupState上
+            return {
+                number,
+                // data,
+                increment
+            }
+        }
+    });
+
+    /**
+     * 1. data如何挂载？ instance.data = reactive(data); defineProperty(instance.ctx,key,{get(){ return data[key] }})
+     * 2. setup里的ref如何挂载：统一挂载到isntance.setupState上（属性，方法等）
+     * 3. 响应式相关问题：
+     * 3.1) 挂载后如何渲染到DOM里：编译成render函数后，属性直接写在函数里，指向了proxy，proxy内部会处理指向instance.data/setupState。最后render函数执行返回对应的VNode
+     * 3.2) 如何收集依赖？ ref()与reactive()的 区别: 
+     * 3.2.1） reactive依赖收集在baseReactiveHandler的get里；
+     * 3.2.2） ref的收集是在 PublicInstanceProxyHandlers的get里,一直指向到 RefImpl里的value getter方法
+     * 3.3) 事件改变值后如何触发DOM更新？
+     * 3.3.1) reactive的话在：MutableReactiveHandler里。
+     * 3.3.2) ref的话在 RefImpl里的value set方法里调用triggerRefValue
+     **/ 
+  app.mount('#app');
+
+
+//事件绑定不同的写法，对应不同的render函数
+/**
+ * 1. @click="increment"
+ * { onClick: increment }, //直接从this中读区方法
+ * 
+ * 2. @click="($event)=>increment($event)"
+ * { onClick: ($event) => increment($event) }, //匿名函数
+ * 
+ * 3. @click="increment($event)"
+ * { onClick: ()=>increment($event) } //匿名函数
+
+ * */
+</script>
+</body>
+</html>
