@@ -379,6 +379,7 @@ function baseCreateRenderer(
     parentSuspense = null,
     namespace = undefined,
     slotScopeIds = null,
+    //这里的优化模式是根据 n2新VNode是否有dynamicChildren属性决定的
     optimized = __DEV__ && isHmrUpdating ? false : !!n2.dynamicChildren,
   ) => {
     if (n1 === n2) {
@@ -391,7 +392,7 @@ function baseCreateRenderer(
       unmount(n1, parentComponent, parentSuspense, true)
       n1 = null
     }
-
+    //跳出优化模式，把dynamicChildren清空
     if (n2.patchFlag === PatchFlags.BAIL) {
       optimized = false
       n2.dynamicChildren = null
