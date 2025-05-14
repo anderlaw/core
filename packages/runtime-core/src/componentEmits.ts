@@ -114,6 +114,7 @@ export function emit(
   ...rawArgs: any[]
 ): ComponentPublicInstance | null | undefined {
   if (instance.isUnmounted) return
+  //1.取出组件接受的props
   const props = instance.vnode.props || EMPTY_OBJ
 
   if (__DEV__) {
@@ -187,6 +188,7 @@ export function emit(
   }
 
   let handlerName
+  //2.从props中取出事件处理函数
   let handler =
     props[(handlerName = toHandlerKey(event))] ||
     // also try camelCase event handler (#2249)
@@ -198,6 +200,7 @@ export function emit(
   }
 
   if (handler) {
+    //3.调用事件处理函数，由于函数执行栈处于父组件的block内，因此如涉及到响应式属性的改变会自动触发effect副作用的update函数
     callWithAsyncErrorHandling(
       handler,
       instance,

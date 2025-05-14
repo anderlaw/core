@@ -695,6 +695,7 @@ export function createComponentInstance(
     instance.ctx = { _: instance }
   }
   instance.root = parent ? parent.root : instance
+  //组件的emit方法用于$emit('eventName')，自动绑定了null为this，instance为预参数
   instance.emit = emit.bind(null, instance)
 
   // apply custom element special handling
