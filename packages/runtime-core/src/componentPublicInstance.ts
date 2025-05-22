@@ -431,7 +431,9 @@ export const PublicInstanceProxyHandlers: ProxyHandler<any> = {
     // access on a plain object, so we use an accessCache object (with null
     // prototype) to memoize what access type a key corresponds to.
     let normalizedProps
+    //1. 普通的非$开头的属性
     if (key[0] !== '$') {
+      //记录该key属于何种访问类型：setup、data、context访问、props
       const n = accessCache![key]
       if (n !== undefined) {
         switch (n) {
@@ -469,6 +471,7 @@ export const PublicInstanceProxyHandlers: ProxyHandler<any> = {
 
     const publicGetter = publicPropertiesMap[key]
     let cssModule, globalProperties
+    //1. 获取public $xxx 属性
     // public $xxx properties
     if (publicGetter) {
       if (key === '$attrs') {
@@ -486,6 +489,7 @@ export const PublicInstanceProxyHandlers: ProxyHandler<any> = {
     ) {
       return cssModule
     } else if (ctx !== EMPTY_OBJ && hasOwn(ctx, key)) {
+      //2. 获取ctx的属性
       // user may set custom properties to `this` that start with `$`
       accessCache![key] = AccessTypes.CONTEXT
       return ctx[key]
@@ -494,6 +498,7 @@ export const PublicInstanceProxyHandlers: ProxyHandler<any> = {
       ((globalProperties = appContext.config.globalProperties),
       hasOwn(globalProperties, key))
     ) {
+      //3.获取全局属性
       if (__COMPAT__) {
         const desc = Object.getOwnPropertyDescriptor(globalProperties, key)!
         if (desc.get) {

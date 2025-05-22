@@ -294,7 +294,14 @@ export type SetupContext<
  */
 export type InternalRenderFunction = {
   (
-    ctx: ComponentPublicInstance,
+    /**
+     * ctx为何是 组件实例呢？
+     * 1. ctx是一个代理对象 :new Proxy(i.ctx, RuntimeCompiledPublicInstanceProxyHandlers)
+     * 可以看到代理的组件的ctx属性 ，那么RuntimeCompiledPublicInstanceProxyHandlers必须能处理
+     * ComponentPublicInstance 是instance中的公开属性
+     * instace.proxy也是 ComponentPublicInstance类型的。
+     */
+    ctx: ComponentPublicInstance, //ctx其实是个代理对象，代理的proxyToUse 正是 ComponentPublicInstance类型的组件实例
     cache: ComponentInternalInstance['renderCache'],
     // for compiler-optimized bindings
     $props: ComponentInternalInstance['props'],
@@ -302,7 +309,7 @@ export type InternalRenderFunction = {
     $data: ComponentInternalInstance['data'],
     $options: ComponentInternalInstance['ctx'],
   ): VNodeChild
-  _rc?: boolean // isRuntimeCompiled
+  _rc?: boolean // isRuntimeCompiled，表示运行时是否被编译成了render函数了，是的话会使用withProxy
 
   // __COMPAT__ only
   _compatChecked?: boolean // v3 and already checked for v2 compat
@@ -972,6 +979,7 @@ let installWithProxy: (i: ComponentInternalInstance) => void
 export function registerRuntimeCompiler(_compile: any): void {
   compile = _compile
   installWithProxy = i => {
+    //如果是redner函数被编译过了，那么使用withProxy代理实例的ctx对象
     if (i.render!._rc) {
       i.withProxy = new Proxy(i.ctx, RuntimeCompiledPublicInstanceProxyHandlers)
     }
