@@ -41,6 +41,7 @@ export interface Ref<T = any, S = T> {
  * @see {@link https://vuejs.org/api/reactivity-utilities.html#isref}
  */
 export function isRef<T>(r: Ref<T> | unknown): r is Ref<T>
+//类型守卫
 export function isRef(r: any): r is Ref {
   return r ? r[ReactiveFlags.IS_REF] === true : false
 }
@@ -111,11 +112,14 @@ class RefImpl<T = any> {
 
   dep: Dep = new Dep()
 
+  //两个只读属性
   public readonly [ReactiveFlags.IS_REF] = true
   public readonly [ReactiveFlags.IS_SHALLOW]: boolean = false
 
   constructor(value: T, isShallow: boolean) {
+    //原始值
     this._rawValue = isShallow ? value : toRaw(value)
+    //值
     this._value = isShallow ? value : toReactive(value)
     this[ReactiveFlags.IS_SHALLOW] = isShallow
   }
@@ -128,6 +132,7 @@ class RefImpl<T = any> {
         key: 'value',
       })
     } else {
+      //依赖收集
       this.dep.track()
     }
     return this._value
@@ -139,9 +144,11 @@ class RefImpl<T = any> {
       this[ReactiveFlags.IS_SHALLOW] ||
       isShallow(newValue) ||
       isReadonly(newValue)
+    //把newValue转化为原始值
     newValue = useDirectValue ? newValue : toRaw(newValue)
     if (hasChanged(newValue, oldValue)) {
       this._rawValue = newValue
+      //实际的value
       this._value = useDirectValue ? newValue : toReactive(newValue)
       if (__DEV__) {
         this.dep.trigger({
@@ -223,6 +230,7 @@ export type MaybeRefOrGetter<T = any> = MaybeRef<T> | ComputedRef<T> | (() => T)
  * @param ref - Ref or plain value to be converted into the plain value.
  * @see {@link https://vuejs.org/api/reactivity-utilities.html#unref}
  */
+//如果是ref属性就返回 ref.value,触发 RefImpl的get方法
 export function unref<T>(ref: MaybeRef<T> | ComputedRef<T>): T {
   return isRef(ref) ? ref.value : ref
 }
@@ -247,11 +255,14 @@ export function toValue<T>(source: MaybeRefOrGetter<T>): T {
   return isFunction(source) ? source() : unref(source)
 }
 
+//这是setupResults的代理handler
 const shallowUnwrapHandlers: ProxyHandler<any> = {
   get: (target, key, receiver) =>
     key === ReactiveFlags.RAW
       ? target
-      : unref(Reflect.get(target, key, receiver)),
+      : unref(
+          Reflect.get(target, key, receiver) /* 从setupResults中取出属性 */,
+        ),
   set: (target, key, value, receiver) => {
     const oldValue = target[key]
     if (isRef(oldValue) && !isRef(value)) {

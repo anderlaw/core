@@ -100,19 +100,25 @@ export class Dep {
   }
 
   track(debugInfo?: DebuggerEventExtraInfo): Link | undefined {
+    //如果没有激活的订阅者，或者不允许收集依赖，或者激活的依赖是computed 本身（防止无限递归），跳过依赖
     if (!activeSub || !shouldTrack || activeSub === this.computed) {
       return
     }
 
     let link = this.activeLink
     if (link === undefined || link.sub !== activeSub) {
+      //Link: 创建link对象（连接了Dep和ActiveSub订阅者）
       link = this.activeLink = new Link(activeSub, this)
 
       // add the link to the activeEffect as a dep (as tail)
+      // activeSub记录 link
       if (!activeSub.deps) {
+        //link是个链表，串着多个依赖，所以用dep`s`
         activeSub.deps = activeSub.depsTail = link
       } else {
+        //Dep.lin 是从 后 往 前 记录 prevDep
         link.prevDep = activeSub.depsTail
+        //activeSub.desTail是从 前 往 后 记录的 nextDep
         activeSub.depsTail!.nextDep = link
         activeSub.depsTail = link
       }
@@ -185,6 +191,7 @@ export class Dep {
         }
       }
       for (let link = this.subs; link; link = link.prevSub) {
+        //link.sub 是一个reactiveEffect
         if (link.sub.notify()) {
           // if notify() returns `true`, this is a computed. Also call notify
           // on its dep - it's called here instead of inside computed's notify
@@ -199,6 +206,7 @@ export class Dep {
 }
 
 function addSub(link: Link) {
+  //增加订阅者数量 记录
   link.dep.sc++
   if (link.sub.flags & EffectFlags.TRACKING) {
     const computed = link.dep.computed
@@ -210,9 +218,10 @@ function addSub(link: Link) {
         addSub(l)
       }
     }
-
+    //当前的尾巴
     const currentTail = link.dep.subs
     if (currentTail !== link) {
+      //双指向
       link.prevSub = currentTail
       if (currentTail) currentTail.nextSub = link
     }
@@ -220,7 +229,7 @@ function addSub(link: Link) {
     if (__DEV__ && link.dep.subsHead === undefined) {
       link.dep.subsHead = link
     }
-
+    //加到后面
     link.dep.subs = link
   }
 }

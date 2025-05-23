@@ -91,6 +91,7 @@ export function renderComponentRoot(
             })
           : proxyToUse
       result = normalizeVNode(
+        //这里调用render函数生成VNode，可以通过instance.withProxy或者instance.proxy 访问最新的属性，后续通过path更新DOM
         render!.call(
           thisProxy,
           proxyToUse!,

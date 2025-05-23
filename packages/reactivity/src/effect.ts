@@ -101,6 +101,7 @@ export class ReactiveEffect<T = any>
   flags: EffectFlags = EffectFlags.ACTIVE | EffectFlags.TRACKING
   /**
    * @internal
+   * 下一个，串起来多个，用于批处理
    */
   next?: Subscriber = undefined
   /**
@@ -244,6 +245,7 @@ export function batch(sub: Subscriber, isComputed = false): void {
     batchedComputed = sub
     return
   }
+  //
   sub.next = batchedSub
   batchedSub = sub
 }

@@ -438,6 +438,7 @@ export const PublicInstanceProxyHandlers: ProxyHandler<any> = {
       if (n !== undefined) {
         switch (n) {
           case AccessTypes.SETUP:
+            //访问setup里的属性或者方法
             return setupState[key]
           case AccessTypes.DATA:
             return data[key]
@@ -541,6 +542,7 @@ export const PublicInstanceProxyHandlers: ProxyHandler<any> = {
   ): boolean {
     const { data, setupState, ctx } = instance
     if (hasSetupBinding(setupState, key)) {
+      //触发副作用函数更新
       setupState[key] = value
       return true
     } else if (
