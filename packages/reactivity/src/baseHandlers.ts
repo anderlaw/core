@@ -110,6 +110,7 @@ class BaseReactiveHandler implements ProxyHandler<Target> {
     }
 
     if (!isReadonly) {
+      //这里收集依赖
       track(target, TrackOpTypes.GET, key)
     }
 

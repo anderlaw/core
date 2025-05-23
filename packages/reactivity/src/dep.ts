@@ -262,15 +262,20 @@ export const ARRAY_ITERATE_KEY: unique symbol = Symbol(
  * @param type - Defines the type of access to the reactive property.
  * @param key - Identifier of the reactive property to track.
  */
+//reactive收集依赖
 export function track(target: object, type: TrackOpTypes, key: unknown): void {
   if (shouldTrack && activeSub) {
+    //从targetMap中获取对象对应的depsMap
     let depsMap = targetMap.get(target)
     if (!depsMap) {
       targetMap.set(target, (depsMap = new Map()))
     }
+    //再从depsMap中获取key对应的dep
     let dep = depsMap.get(key)
     if (!dep) {
       depsMap.set(key, (dep = new Dep()))
+      //顺带记录 map: depsMap
+      //key: key
       dep.map = depsMap
       dep.key = key
     }
@@ -281,6 +286,7 @@ export function track(target: object, type: TrackOpTypes, key: unknown): void {
         key,
       })
     } else {
+      //de.track(),后续就跟ref收集依赖一样了
       dep.track()
     }
   }
@@ -294,6 +300,7 @@ export function track(target: object, type: TrackOpTypes, key: unknown): void {
  * @param type - Defines the type of the operation that needs to trigger effects.
  * @param key - Can be used to target a specific reactive property in the target object.
  */
+//reactive 触发更新
 export function trigger(
   target: object,
   type: TriggerOpTypes,
@@ -321,6 +328,7 @@ export function trigger(
           oldTarget,
         })
       } else {
+        //触发更新
         dep.trigger()
       }
     }
