@@ -250,6 +250,7 @@ export type CreateAppFunction<HostElement> = (
 
 let uid = 0
 
+//真正创建App的入口
 export function createAppAPI<HostElement>(
   render: RootRenderFunction<HostElement>,
   hydrate?: RootHydrateFunction,
@@ -268,6 +269,7 @@ export function createAppAPI<HostElement>(
     const installedPlugins = new WeakSet()
     const pluginCleanupFns: Array<() => any> = []
 
+    //记录DOM是否mount
     let isMounted = false
 
     const app: App = (context.app = {
@@ -354,7 +356,7 @@ export function createAppAPI<HostElement>(
         context.directives[name] = directive
         return app
       },
-
+      //真正挂载组件的方法
       mount(
         rootContainer: HostElement,
         isHydrate?: boolean,
@@ -369,9 +371,14 @@ export function createAppAPI<HostElement>(
                 ` you need to unmount the previous app by calling \`app.unmount()\` first.`,
             )
           }
-          const vnode = app._ceVNode || createVNode(rootComponent, rootProps)
+          //
+          const vnode =
+            app._ceVNode /*自定义元素 custom element vnode*/ ||
+            //创建vnode
+            createVNode(rootComponent, rootProps)
           // store app context on the root VNode.
           // this will be set on the root instance on initial mount.
+          //将appContext挂载到vnode根节点上
           vnode.appContext = context
 
           if (namespace === true) {
@@ -398,7 +405,10 @@ export function createAppAPI<HostElement>(
           } else {
             render(vnode, rootContainer, namespace)
           }
+          //挂载结束
           isMounted = true
+
+          //app和container互相引用
           app._container = rootContainer
           // for devtools and telemetry
           ;(rootContainer as any).__vue_app__ = app

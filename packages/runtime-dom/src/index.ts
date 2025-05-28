@@ -95,6 +95,7 @@ export const hydrate = ((...args) => {
   ensureHydrationRenderer().hydrate(...args)
 }) as RootHydrateFunction
 
+//暴露的createApp入口
 export const createApp = ((...args) => {
   const app = ensureRenderer().createApp(...args)
 
@@ -103,6 +104,8 @@ export const createApp = ((...args) => {
     injectCompilerOptionsCheck(app)
   }
 
+  //取出app.mount 作为内部API
+  //给app.mount 赋值一个对外的API，处理一些情况
   const { mount } = app
   app.mount = (containerOrSelector: Element | ShadowRoot | string): any => {
     const container = normalizeContainer(containerOrSelector)
@@ -134,6 +137,7 @@ export const createApp = ((...args) => {
     if (container.nodeType === 1) {
       container.textContent = ''
     }
+    //调用createAppAPI里的mount方法挂载应用
     const proxy = mount(container, false, resolveRootNamespace(container))
     if (container instanceof Element) {
       container.removeAttribute('v-cloak')

@@ -337,6 +337,7 @@ function baseCreateRenderer(
   createHydrationFns: typeof createHydrationFunctions,
 ): HydrationRenderer
 
+//真正创建render方法
 // implementation
 function baseCreateRenderer(
   options: RendererOptions,
@@ -2377,6 +2378,7 @@ function baseCreateRenderer(
   }
 
   let isFlushing = false
+  //render函数
   const render: RootRenderFunction = (vnode, container, namespace) => {
     if (vnode == null) {
       if (container._vnode) {
@@ -2422,7 +2424,7 @@ function baseCreateRenderer(
       internals as RendererInternals<Node, Element>,
     )
   }
-
+  //baseCreateRenderer返回 render、hydrate、createApp
   return {
     render,
     hydrate,
