@@ -71,17 +71,17 @@ export const Comment: unique symbol = Symbol.for('v-cmt')
 export const Static: unique symbol = Symbol.for('v-stc')
 
 export type VNodeTypes =
-  | string
+  | string /*字符串比如某个元素div，button*/
   | VNode
   | Component
-  | typeof Text
-  | typeof Static
-  | typeof Comment
-  | typeof Fragment
+  | typeof Text /*文本*/
+  | typeof Static /*静态*/
+  | typeof Comment /*注释节点*/
+  | typeof Fragment /*片段节点*/
   | typeof Teleport
   | typeof TeleportImpl
-  | typeof Suspense
-  | typeof SuspenseImpl
+  | typeof Suspense /*异步组件*/
+  | typeof SuspenseImpl /*异步实现组件*/
 
 export type VNodeRef =
   | string
@@ -455,7 +455,7 @@ function createBaseVNode(
   type: VNodeTypes | ClassComponent | typeof NULL_DYNAMIC_COMPONENT,
   props: (Data & VNodeProps) | null = null,
   children: unknown = null,
-  patchFlag = 0,
+  patchFlag = 0, //patchFlag默认为0，用于标识vnode的path类型（详见 patchFlags.ts）
   dynamicProps: string[] | null = null,
   shapeFlag: number = type === Fragment ? 0 : ShapeFlags.ELEMENT,
   isBlockNode = false,
@@ -464,7 +464,7 @@ function createBaseVNode(
   const vnode = {
     __v_isVNode: true,
     __v_skip: true,
-    type,
+    type, //类型
     props,
     key: props && normalizeKey(props),
     ref: props && normalizeRef(props),
@@ -483,7 +483,7 @@ function createBaseVNode(
     targetStart: null,
     targetAnchor: null,
     staticCount: 0,
-    shapeFlag,
+    shapeFlag, //形状标记
     patchFlag,
     dynamicProps,
     dynamicChildren: null,
@@ -492,6 +492,7 @@ function createBaseVNode(
   } as VNode
 
   if (needFullChildrenNormalization) {
+    //根据children的情况更新一下vnode
     normalizeChildren(vnode, children)
     // normalize suspense children
     if (__FEATURE_SUSPENSE__ && shapeFlag & ShapeFlags.SUSPENSE) {
@@ -543,6 +544,7 @@ export const createVNode = (
   __DEV__ ? createVNodeWithArgsTransform : _createVNode
 ) as typeof _createVNode
 
+//处理一下vnode的创建请求，最后再调用createBaseVNode
 function _createVNode(
   type: VNodeTypes | ClassComponent | typeof NULL_DYNAMIC_COMPONENT,
   props: (Data & VNodeProps) | null = null,
@@ -606,6 +608,7 @@ function _createVNode(
   }
 
   // encode the vnode type information into a bitmap
+  //获取创建vnode需要的类型
   const shapeFlag = isString(type)
     ? ShapeFlags.ELEMENT
     : __FEATURE_SUSPENSE__ && isSuspense(type)
