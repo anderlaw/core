@@ -42,6 +42,7 @@ export function markAttrsAccessed(): void {
 
 type SetRootFn = ((root: VNode) => void) | undefined
 
+///渲染subtree vnode节点
 export function renderComponentRoot(
   instance: ComponentInternalInstance,
 ): VNode {
@@ -91,7 +92,7 @@ export function renderComponentRoot(
             })
           : proxyToUse
       result = normalizeVNode(
-        //这里调用render函数生成VNode，可以通过instance.withProxy或者instance.proxy 访问最新的属性，后续通过path更新DOM
+        //这里调用render函数生成VNode，通过instance.withProxy访问最新的属性
         render!.call(
           thisProxy,
           proxyToUse!,

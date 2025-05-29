@@ -585,7 +585,7 @@ export function applyOptions(instance: ComponentInternalInstance): void {
   if (injectOptions) {
     resolveInjections(injectOptions, ctx, checkDuplicateProperties)
   }
-
+  //处理方法：绑定到ctx上
   if (methods) {
     for (const key in methods) {
       const methodHandler = (methods as MethodOptions)[key]
@@ -633,6 +633,7 @@ export function applyOptions(instance: ComponentInternalInstance): void {
     if (!isObject(data)) {
       __DEV__ && warn(`data() should return an object.`)
     } else {
+      //data绑定到instance.data上
       instance.data = reactive(data)
       if (__DEV__) {
         for (const key in data) {
@@ -653,7 +654,7 @@ export function applyOptions(instance: ComponentInternalInstance): void {
 
   // state initialization complete at this point - start caching access
   shouldCacheAccess = true
-
+  //计算属性
   if (computedOptions) {
     for (const key in computedOptions) {
       const opt = (computedOptions as ComputedOptions)[key]
@@ -690,7 +691,7 @@ export function applyOptions(instance: ComponentInternalInstance): void {
       }
     }
   }
-
+  //watcher
   if (watchOptions) {
     for (const key in watchOptions) {
       createWatcher(watchOptions[key], ctx, publicThis, key)
@@ -710,8 +711,9 @@ export function applyOptions(instance: ComponentInternalInstance): void {
     callHook(created, instance, LifecycleHooks.CREATED)
   }
 
+  //注册声明周期钩子
   function registerLifecycleHook(
-    register: Function,
+    register: Function, //注册器
     hook?: Function | Function[],
   ) {
     if (isArray(hook)) {
@@ -720,7 +722,7 @@ export function applyOptions(instance: ComponentInternalInstance): void {
       register(hook.bind(publicThis))
     }
   }
-
+  //判断处理hook的多种情况
   registerLifecycleHook(onBeforeMount, beforeMount)
   registerLifecycleHook(onMounted, mounted)
   registerLifecycleHook(onBeforeUpdate, beforeUpdate)

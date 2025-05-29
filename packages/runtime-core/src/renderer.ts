@@ -1126,10 +1126,10 @@ function baseCreateRenderer(
       }
     }
   }
-
+  //处理组件
   const processComponent = (
-    n1: VNode | null,
-    n2: VNode,
+    n1: VNode | null, //old
+    n2: VNode, //new
     container: RendererElement,
     anchor: RendererNode | null,
     parentComponent: ComponentInternalInstance | null,
@@ -1140,7 +1140,9 @@ function baseCreateRenderer(
   ) => {
     n2.slotScopeIds = slotScopeIds
     if (n1 == null) {
+      //组件挂载
       if (n2.shapeFlag & ShapeFlags.COMPONENT_KEPT_ALIVE) {
+        //keepAlive
         ;(parentComponent!.ctx as KeepAliveContext).activate(
           n2,
           container,
@@ -1149,6 +1151,7 @@ function baseCreateRenderer(
           optimized,
         )
       } else {
+        //新加载
         mountComponent(
           n2,
           container,
@@ -1160,6 +1163,7 @@ function baseCreateRenderer(
         )
       }
     } else {
+      //组件更新
       updateComponent(n1, n2, optimized)
     }
   }
@@ -1204,6 +1208,14 @@ function baseCreateRenderer(
       if (__DEV__) {
         startMeasure(instance, `init`)
       }
+      //设置组件（其实就是设置组件的setupResults）
+      /**
+       * 设置组件
+       * 1. 设置accessCache
+       * 2. 设置proxy属性
+       * 3. 处理setup属性
+       * 4. 结束设置（设置options，挂载属性）
+       */
       setupComponent(instance, false, optimized)
       if (__DEV__) {
         endMeasure(instance, `init`)
@@ -1273,7 +1285,7 @@ function baseCreateRenderer(
       instance.vnode = n2
     }
   }
-
+  //负责设置组件的首次挂载（mount）与更新（update）逻辑。
   const setupRenderEffect: SetupRenderEffectFn = (
     instance,
     initialVNode,
@@ -1291,6 +1303,7 @@ function baseCreateRenderer(
         const isAsyncWrapperVNode = isAsyncWrapper(initialVNode)
 
         toggleRecurse(instance, false)
+        //调用beforeMount钩子
         // beforeMount hook
         if (bm) {
           invokeArrayFns(bm)
@@ -1356,6 +1369,8 @@ function baseCreateRenderer(
           if (__DEV__) {
             startMeasure(instance, `render`)
           }
+
+          //renderComponentRoot渲染组件根节点
           const subTree = (instance.subTree = renderComponentRoot(instance))
           if (__DEV__) {
             endMeasure(instance, `render`)
@@ -1363,6 +1378,7 @@ function baseCreateRenderer(
           if (__DEV__) {
             startMeasure(instance, `patch`)
           }
+          //比对开始path
           patch(
             null,
             subTree,
@@ -1377,6 +1393,7 @@ function baseCreateRenderer(
           }
           initialVNode.el = subTree.el
         }
+        //mounted hook插入队列
         // mounted hook
         if (m) {
           queuePostRenderEffect(m, parentSuspense)
@@ -2376,9 +2393,9 @@ function baseCreateRenderer(
     const teleportEnd = el && el[TeleportEndKey]
     return teleportEnd ? hostNextSibling(teleportEnd) : el
   }
-
+  //表示是否已经在刷新队列（job queue）。
   let isFlushing = false
-  //render函数
+  //渲染根节点VNode的render方法
   const render: RootRenderFunction = (vnode, container, namespace) => {
     if (vnode == null) {
       if (container._vnode) {

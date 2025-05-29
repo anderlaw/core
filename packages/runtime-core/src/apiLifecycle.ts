@@ -28,6 +28,7 @@ export function injectHook(
     // cache the error handling wrapper for injected hooks so the same hook
     // can be properly deduped by the scheduler. "__weh" stands for "with error
     // handling".
+    //Vue 会把你注册的钩子（比如生命周期钩子）包在一个自动捕获错误的函数里，并把这个包裹后的函数缓存起来。
     const wrappedHook =
       hook.__weh ||
       (hook.__weh = (...args: unknown[]) => {
@@ -65,6 +66,7 @@ export function injectHook(
 
 const createHook =
   <T extends Function = () => any>(lifecycle: LifecycleHooks) =>
+  //返回一个 CreateHook 函数
   (
     hook: T,
     target: ComponentInternalInstance | null = currentInstance,

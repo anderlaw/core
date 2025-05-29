@@ -607,7 +607,7 @@ export interface ComponentInternalInstance {
 const emptyAppContext = createAppContext()
 
 let uid = 0
-
+//创建组件实例
 export function createComponentInstance(
   vnode: VNode,
   parent: ComponentInternalInstance | null,
@@ -618,12 +618,13 @@ export function createComponentInstance(
   const appContext =
     (parent ? parent.appContext : vnode.appContext) || emptyAppContext
 
+  //内部实例
   const instance: ComponentInternalInstance = {
     uid: uid++,
     vnode,
-    type,
+    type, //type跟vnode的type相同
     parent,
-    appContext,
+    appContext, //appContext也跟vnode的appContext
     root: null!, // to be immediately set
     next: null,
     subTree: null!, // will be set synchronously right after creation
@@ -632,7 +633,7 @@ export function createComponentInstance(
     job: null!,
     scope: new EffectScope(true /* detached */),
     render: null,
-    proxy: null,
+    proxy: null, // 公开实例（ComponentPublicInstance）
     exposed: null,
     exposeProxy: null,
     withProxy: null,
@@ -701,6 +702,7 @@ export function createComponentInstance(
   } else {
     instance.ctx = { _: instance }
   }
+  //root instance
   instance.root = parent ? parent.root : instance
   //组件的emit方法用于$emit('eventName')，自动绑定了null为this，instance为预参数
   instance.emit = emit.bind(null, instance)
@@ -917,6 +919,7 @@ function setupStatefulComponent(
         )
       }
     } else {
+      //包装setupResult处理.value
       handleSetupResult(instance, setupResult, isSSR)
     }
   } else {
@@ -990,6 +993,9 @@ export function registerRuntimeCompiler(_compile: any): void {
 // dev only
 export const isRuntimeOnly = (): boolean => !compile
 
+//结束组件设置
+//1. 将template编译成render函数
+//2. 处理options
 export function finishComponentSetup(
   instance: ComponentInternalInstance,
   isSSR: boolean,
@@ -1042,6 +1048,7 @@ export function finishComponentSetup(
             extend(finalCompilerOptions.compatConfig, Component.compatConfig)
           }
         }
+        //编译成渲染函数挂到Component.render上
         Component.render = compile(template, finalCompilerOptions)
         if (__DEV__) {
           endMeasure(instance, `compile`)
@@ -1055,6 +1062,7 @@ export function finishComponentSetup(
     // proxy used needs a different `has` handler which is more performant and
     // also only allows a whitelist of globals to fallthrough.
     if (installWithProxy) {
+      //挂载withProxy: i.withProxy = new Proxy(i.ctx, RuntimeCompiledPublicInstanceProxyHandlers)
       installWithProxy(instance)
     }
   }
