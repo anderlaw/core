@@ -113,7 +113,7 @@ class RefImpl<T = any> {
   dep: Dep = new Dep()
 
   //两个只读属性
-  public readonly [ReactiveFlags.IS_REF] = true
+  public readonly [ReactiveFlags.IS_REF] = true //标记是否是ref
   public readonly [ReactiveFlags.IS_SHALLOW]: boolean = false
 
   constructor(value: T, isShallow: boolean) {
@@ -232,6 +232,7 @@ export type MaybeRefOrGetter<T = any> = MaybeRef<T> | ComputedRef<T> | (() => T)
  */
 //如果是ref属性就返回 ref.value,触发 RefImpl的get方法
 export function unref<T>(ref: MaybeRef<T> | ComputedRef<T>): T {
+  //针对ref，返回用.value访问的值
   return isRef(ref) ? ref.value : ref
 }
 
@@ -255,17 +256,18 @@ export function toValue<T>(source: MaybeRefOrGetter<T>): T {
   return isFunction(source) ? source() : unref(source)
 }
 
-//这是setupResults的代理handler
+//代理模版里setupResults的代理handler
 const shallowUnwrapHandlers: ProxyHandler<any> = {
+  //模版里的属性访问拦截
   get: (target, key, receiver) =>
     key === ReactiveFlags.RAW
       ? target
-      : unref(
-          Reflect.get(target, key, receiver) /* 从setupResults中取出属性 */,
-        ),
+      : unref(Reflect.get(target, key, receiver)),
+  //模版里的set操作
   set: (target, key, value, receiver) => {
     const oldValue = target[key]
     if (isRef(oldValue) && !isRef(value)) {
+      //这里会走ref.value 的赋值
       oldValue.value = value
       return true
     } else {
