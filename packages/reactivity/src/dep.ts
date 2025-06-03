@@ -29,6 +29,7 @@ export let globalVersion = 0
  *
  * @internal
  */
+//双链列表
 export class Link {
   /**
    * - Before each effect run, all previous dep links' version are reset to -1
@@ -48,8 +49,8 @@ export class Link {
   prevActiveLink?: Link
 
   constructor(
-    public sub: Subscriber,
-    public dep: Dep,
+    public sub: Subscriber, //订阅者
+    public dep: Dep, //依赖
   ) {
     this.version = dep.version
     this.nextDep =
@@ -104,7 +105,7 @@ export class Dep {
     if (!activeSub || !shouldTrack || activeSub === this.computed) {
       return
     }
-
+    //1. 处理deps,link绑定prevDep和nextDep
     let link = this.activeLink
     if (link === undefined || link.sub !== activeSub) {
       //Link: 创建link对象（连接了Dep和ActiveSub订阅者）
@@ -116,13 +117,13 @@ export class Dep {
         //link是个链表，串着多个依赖，所以用dep`s`
         activeSub.deps = activeSub.depsTail = link
       } else {
-        //Dep.lin 是从 后 往 前 记录 prevDep
+        //双向引用
         link.prevDep = activeSub.depsTail
-        //activeSub.desTail是从 前 往 后 记录的 nextDep
         activeSub.depsTail!.nextDep = link
+        //把link放到depsTail
         activeSub.depsTail = link
       }
-
+      //2. 处理subs
       addSub(link)
     } else if (link.version === -1) {
       // reused from last run - already a sub, just sync version
@@ -204,7 +205,7 @@ export class Dep {
     }
   }
 }
-
+//处理dep.subs,link绑定nextSub和prevSub
 function addSub(link: Link) {
   //增加订阅者数量 记录
   link.dep.sc++
@@ -262,7 +263,8 @@ export const ARRAY_ITERATE_KEY: unique symbol = Symbol(
  * @param type - Defines the type of access to the reactive property.
  * @param key - Identifier of the reactive property to track.
  */
-//reactive收集依赖
+//reactive 依赖收集的入口：判断是否可以收集，然后从targetMap中取出依赖，调用依赖的track方法
+//ref 收集依赖直接调用dep.track
 export function track(target: object, type: TrackOpTypes, key: unknown): void {
   if (shouldTrack && activeSub) {
     //从targetMap中获取对象对应的depsMap
@@ -286,7 +288,7 @@ export function track(target: object, type: TrackOpTypes, key: unknown): void {
         key,
       })
     } else {
-      //de.track(),后续就跟ref收集依赖一样了
+      //dep.track(),后续就跟ref收集依赖一样了
       dep.track()
     }
   }
