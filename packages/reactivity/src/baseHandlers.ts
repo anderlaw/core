@@ -48,13 +48,14 @@ function hasOwnProperty(this: object, key: unknown) {
 
 class BaseReactiveHandler implements ProxyHandler<Target> {
   constructor(
-    protected readonly _isReadonly = false,
+    protected readonly /*使该属性只能在类内部、子类内部访问*/ _isReadonly = false,
     protected readonly _isShallow = false,
   ) {}
 
   get(target: Target, key: string | symbol, receiver: object): any {
     if (key === ReactiveFlags.SKIP) return target[ReactiveFlags.SKIP]
 
+    //内部取值，无需收集依赖
     const isReadonly = this._isReadonly,
       isShallow = this._isShallow
     if (key === ReactiveFlags.IS_REACTIVE) {
@@ -64,6 +65,7 @@ class BaseReactiveHandler implements ProxyHandler<Target> {
     } else if (key === ReactiveFlags.IS_SHALLOW) {
       return isShallow
     } else if (key === ReactiveFlags.RAW) {
+      //取出原始对象
       if (
         receiver ===
           (isReadonly
@@ -89,6 +91,7 @@ class BaseReactiveHandler implements ProxyHandler<Target> {
     if (!isReadonly) {
       let fn: Function | undefined
       if (targetIsArray && (fn = arrayInstrumentations[key])) {
+        //返回数组的工具函，比如every,find等，这些方法本身是不需要收集依赖的
         return fn
       }
       if (key === 'hasOwnProperty') {
@@ -109,8 +112,8 @@ class BaseReactiveHandler implements ProxyHandler<Target> {
       return res
     }
 
+    //这里收集依赖
     if (!isReadonly) {
-      //这里收集依赖
       track(target, TrackOpTypes.GET, key)
     }
 

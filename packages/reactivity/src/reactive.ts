@@ -293,6 +293,7 @@ function createReactiveObject(
     target,
     targetType === TargetType.COLLECTION ? collectionHandlers : baseHandlers,
   )
+  //将target和proxy存储到一个weakMap里，方便后续获取原始对象(raw捕获)：proxyMap.get(target);
   proxyMap.set(target, proxy)
   return proxy
 }
