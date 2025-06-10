@@ -44,6 +44,7 @@ export interface WritableComputedOptions<T, S = T> {
  * @private exported by @vue/reactivity for Vue core use, but not exported from
  * the main vue package
  */
+//computed实例化的内部函数
 export class ComputedRefImpl<T = any> implements Subscriber {
   /**
    * @internal
@@ -56,7 +57,7 @@ export class ComputedRefImpl<T = any> implements Subscriber {
   /**
    * @internal
    */
-  readonly __v_isRef = true
+  readonly __v_isRef = true //标记为ref，因此需要在使用的地方通过.value访问
   // TODO isolatedDeclarations ReactiveFlags.IS_REF
   /**
    * @internal
@@ -103,7 +104,7 @@ export class ComputedRefImpl<T = any> implements Subscriber {
   _warnRecursive?: boolean
 
   constructor(
-    public fn: ComputedGetter<T>,
+    public fn: ComputedGetter<T>, //fn如何被触发调用，以及如何修改、返回最新的computedRef
     private readonly setter: ComputedSetter<T> | undefined,
     isSSR: boolean,
   ) {
@@ -127,7 +128,7 @@ export class ComputedRefImpl<T = any> implements Subscriber {
       // TODO warn
     }
   }
-
+  //收集依赖自身的订阅者
   get value(): T {
     const link = __DEV__
       ? this.dep.track({
@@ -136,7 +137,8 @@ export class ComputedRefImpl<T = any> implements Subscriber {
           key: 'value',
         })
       : this.dep.track()
-    refreshComputed(this)
+    //每次访问都会重新收集依赖
+    refreshComputed(this) //这里是关键
     // sync version after evaluation
     if (link) {
       link.version = this.dep.version
@@ -194,6 +196,7 @@ export function computed<T, S = T>(
   options: WritableComputedOptions<T, S>,
   debugOptions?: DebuggerOptions,
 ): WritableComputedRef<T, S>
+//内部执行computed实例化的函数
 export function computed<T>(
   getterOrOptions: ComputedGetter<T> | WritableComputedOptions<T>,
   debugOptions?: DebuggerOptions,
@@ -208,7 +211,7 @@ export function computed<T>(
     getter = getterOrOptions.get
     setter = getterOrOptions.set
   }
-
+  //computed实例化
   const cRef = new ComputedRefImpl(getter, setter, isSSR)
 
   if (__DEV__ && debugOptions && !isSSR) {

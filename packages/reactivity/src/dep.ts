@@ -113,6 +113,9 @@ export class Dep {
 
       // add the link to the activeEffect as a dep (as tail)
       // activeSub记录 link
+
+      //1. 处理activeSub的deps问题
+      //deps表示第一个link，depsDetail表示最后一个
       if (!activeSub.deps) {
         //link是个链表，串着多个依赖，所以用dep`s`
         activeSub.deps = activeSub.depsTail = link
@@ -123,7 +126,7 @@ export class Dep {
         //把link放到depsTail
         activeSub.depsTail = link
       }
-      //2. 处理subs
+      //2. 处理当前dep的subs问题
       addSub(link)
     } else if (link.version === -1) {
       // reused from last run - already a sub, just sync version
@@ -197,6 +200,8 @@ export class Dep {
           // if notify() returns `true`, this is a computed. Also call notify
           // on its dep - it's called here instead of inside computed's notify
           // in order to reduce call stack depth.
+          //一个响应式数据变化 -> 通知computed改变（代码层面上computd是一个订阅者）-> 继续通知依赖computed的订阅者
+          //这里再通过计算属性的dep的notify方法通知依赖其的subscriber改变
           ;(link.sub as ComputedRefImpl).dep.notify()
         }
       }

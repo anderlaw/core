@@ -654,10 +654,11 @@ export function applyOptions(instance: ComponentInternalInstance): void {
 
   // state initialization complete at this point - start caching access
   shouldCacheAccess = true
-  //计算属性
+  //处理计算属性1:在option里的
   if (computedOptions) {
     for (const key in computedOptions) {
       const opt = (computedOptions as ComputedOptions)[key]
+      //取出getter和setter
       const get = isFunction(opt)
         ? opt.bind(publicThis, publicThis)
         : isFunction(opt.get)
@@ -676,10 +677,13 @@ export function applyOptions(instance: ComponentInternalInstance): void {
                 )
               }
             : NOOP
+      //将getter和setter作为参数导入computed函数
       const c = computed({
         get,
         set,
       })
+      //将计算属性绑定到ctx上,拦截属性的读、写
+      //optionsAPI里 this.computedProp访问，会在这里被拦截，添加.value访问符
       Object.defineProperty(ctx, key, {
         enumerable: true,
         configurable: true,

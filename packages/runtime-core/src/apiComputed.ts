@@ -1,6 +1,6 @@
 import { type ComputedRefImpl, computed as _computed } from '@vue/reactivity'
 import { getCurrentInstance, isInSSRComponentSetup } from './component'
-
+//对外暴露的computed API
 export const computed: typeof _computed = (
   getterOrOptions: any,
   debugOptions?: any,
