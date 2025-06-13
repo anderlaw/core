@@ -140,6 +140,7 @@ export function watch(
     if (isShallow(source) || deep === false || deep === 0)
       return traverse(source, 1)
     // for `deep: undefined` on a reactive object, deeply traverse all properties
+    // 默认第二个参数Infinite
     return traverse(source)
   }
 
@@ -154,7 +155,7 @@ export function watch(
 
   //包装getter
   if (isRef(source)) {
-    //watch的ref的话
+    //watch的ref的话, 包装getter（触发依赖收集）
     getter = () => source.value
     forceTrigger = isShallow(source)
   } else if (isReactive(source)) {
@@ -181,7 +182,8 @@ export function watch(
       // getter with cb
       getter = call
         ? () => call(source, WatchErrorCodes.WATCH_GETTER)
-        : (source as () => any)
+        : //（）=> .value+.value 已经有了依赖收集特性了， 还是 ()=>reacgiveObj.prop
+          (source as () => any)
     } else {
       // no cb -> simple effect
       getter = () => {
@@ -223,6 +225,7 @@ export function watch(
     }
   }
 
+  //一次性watcher：执行cb，然后停止副作用，并清理内存
   if (once && cb) {
     const _cb = cb
     cb = (...args) => {
@@ -296,8 +299,9 @@ export function watch(
     ? () => scheduler(job, false)
     : (job as EffectScheduler)
 
+  //配置清理函数注册入口,作为cb的第三个参数
   boundCleanup = fn => onWatcherCleanup(fn, false, effect)
-
+  //配置清理函数
   cleanup = effect.onStop = () => {
     const cleanups = cleanupMap.get(effect)
     if (cleanups) {
@@ -337,7 +341,7 @@ export function watch(
 
 export function traverse(
   value: unknown,
-  depth: number = Infinity,
+  depth: number = Infinity, //默认无限递归
   seen?: Set<unknown>,
 ): unknown {
   if (depth <= 0 || !isObject(value) || (value as any)[ReactiveFlags.SKIP]) {

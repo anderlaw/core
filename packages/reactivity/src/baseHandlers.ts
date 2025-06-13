@@ -130,6 +130,7 @@ class BaseReactiveHandler implements ProxyHandler<Target> {
       // Convert returned value into a proxy as well. we do the isObject check
       // here to avoid invalid value warning. Also need to lazy access readonly
       // and reactive here to avoid circular dependency.
+      // 这里把对象转换成响应式的
       return isReadonly ? readonly(res) : reactive(res)
     }
 
