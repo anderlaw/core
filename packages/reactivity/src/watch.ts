@@ -143,6 +143,8 @@ export function watch(
     return traverse(source)
   }
 
+  //定义一个effect
+  //这里的effect.run 用于计算最新的值，组件对应的reactiveEffect.run是用于重新渲染
   let effect: ReactiveEffect
   let getter: () => any
   let cleanup: (() => void) | undefined
@@ -150,7 +152,9 @@ export function watch(
   let forceTrigger = false
   let isMultiSource = false
 
+  //包装getter
   if (isRef(source)) {
+    //watch的ref的话
     getter = () => source.value
     forceTrigger = isShallow(source)
   } else if (isReactive(source)) {
@@ -173,6 +177,7 @@ export function watch(
       })
   } else if (isFunction(source)) {
     if (cb) {
+      //是函数的
       // getter with cb
       getter = call
         ? () => call(source, WatchErrorCodes.WATCH_GETTER)
@@ -230,6 +235,7 @@ export function watch(
     ? new Array((source as []).length).fill(INITIAL_WATCHER_VALUE)
     : INITIAL_WATCHER_VALUE
 
+  //当依赖变化时 调用job来执行副作用函数
   const job = (immediateFirstRun?: boolean) => {
     if (
       !(effect.flags & EffectFlags.ACTIVE) ||
@@ -283,6 +289,7 @@ export function watch(
     augmentJob(job)
   }
 
+  //把effect添加到当前的activeEffectScope.effects里了。
   effect = new ReactiveEffect(getter)
 
   effect.scheduler = scheduler

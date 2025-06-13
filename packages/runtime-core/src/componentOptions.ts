@@ -695,6 +695,7 @@ export function applyOptions(instance: ComponentInternalInstance): void {
       }
     }
   }
+  //watcher处理
   //watcher
   if (watchOptions) {
     for (const key in watchOptions) {
@@ -887,6 +888,7 @@ export function createWatcher(
     }
   }
 
+  //支持映射到ctx的方法
   if (isString(raw)) {
     const handler = ctx[raw]
     if (isFunction(handler)) {
@@ -905,6 +907,7 @@ export function createWatcher(
       watch(getter, raw.bind(publicThis))
     }
   } else if (isObject(raw)) {
+    //对象配置
     if (isArray(raw)) {
       raw.forEach(r => createWatcher(r, ctx, publicThis, key))
     } else {

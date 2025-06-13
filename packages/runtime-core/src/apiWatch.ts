@@ -143,6 +143,7 @@ function doWatch(
   cb: WatchCallback | null,
   options: WatchOptions = EMPTY_OBJ,
 ): WatchHandle {
+  //取出 flag属性
   const { immediate, deep, flush, once } = options
 
   if (__DEV__ && !cb) {
@@ -165,7 +166,7 @@ function doWatch(
       )
     }
   }
-
+  //整理watch options
   const baseWatchOptions: BaseWatchOptions = extend({}, options)
 
   if (__DEV__) baseWatchOptions.onWarn = warn
@@ -187,11 +188,13 @@ function doWatch(
   }
 
   const instance = currentInstance
+  //定义call方法,应对那些没有cb的情况
   baseWatchOptions.call = (fn, type, args) =>
     callWithAsyncErrorHandling(fn, instance, type, args)
 
   // scheduler
   let isPre = false
+  //定义调度器 供后续使用
   if (flush === 'post') {
     baseWatchOptions.scheduler = job => {
       queuePostRenderEffect(job, instance && instance.suspense)
@@ -207,7 +210,7 @@ function doWatch(
       }
     }
   }
-
+  //干嘛的？？？
   baseWatchOptions.augmentJob = (job: SchedulerJob) => {
     // important: mark the job as a watcher callback so that scheduler knows
     // it is allowed to self-trigger (#1727)
@@ -261,7 +264,7 @@ export function instanceWatch(
   reset()
   return res
 }
-
+//返回一个懒运行的函数
 export function createPathGetter(ctx: any, path: string) {
   const segments = path.split('.')
   return (): any => {
