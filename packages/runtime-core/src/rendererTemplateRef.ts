@@ -56,7 +56,7 @@ export function setRef(
     // is forwarded to inner component
     return
   }
-
+  //1. 取出ref的值：DOM节点或者组件的instance
   const refValue =
     vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT
       ? getComponentPublicInstance(vnode.component!)
@@ -72,6 +72,8 @@ export function setRef(
     return
   }
   const oldRef = oldRawRef && (oldRawRef as VNodeNormalizedRefAtom).r
+
+  //2.  从instance中取出refs对象
   const refs = owner.refs === EMPTY_OBJ ? (owner.refs = {}) : owner.refs
   const setupState = owner.setupState
   const rawSetupState = toRaw(setupState)
@@ -107,6 +109,7 @@ export function setRef(
   }
 
   if (isFunction(ref)) {
+    //对于ref为回调函数的情况
     callWithErrorHandling(ref, owner, ErrorCodes.FUNCTION_REF, [value, refs])
   } else {
     const _isString = isString(ref)
@@ -138,7 +141,9 @@ export function setRef(
             }
           }
         } else if (_isString) {
+          //3. 将ref的值填入refs对象
           refs[ref] = value
+          //同时如果该属性存在于setup里，那么直接赋值，触发set，可以通过.value访问ref的值
           if (canSetSetupRef(ref)) {
             setupState[ref] = value
           }

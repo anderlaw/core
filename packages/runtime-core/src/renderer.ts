@@ -484,6 +484,7 @@ function baseCreateRenderer(
     }
 
     // set ref
+    // 设置ref的入口
     if (ref != null && parentComponent) {
       setRef(ref, n1 && n1.ref, parentSuspense, n2 || n1, !n2)
     }
@@ -1572,12 +1573,15 @@ function baseCreateRenderer(
     }
 
     // create reactive effect for rendering
+    //开启scope（暴露scope到全局activeEffectScope）
     instance.scope.on()
+    //创建effect，将effect添加到 全局activeEffectScope.effects里
     const effect = (instance.effect = new ReactiveEffect(componentUpdateFn))
     instance.scope.off()
 
     const update = (instance.update = effect.run.bind(effect))
     const job: SchedulerJob = (instance.job = effect.runIfDirty.bind(effect))
+    //给job添加标记后排队
     job.i = instance
     job.id = instance.uid
     effect.scheduler = () => queueJob(job)

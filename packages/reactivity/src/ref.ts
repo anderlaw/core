@@ -266,6 +266,8 @@ const shallowUnwrapHandlers: ProxyHandler<any> = {
   //模版里的set操作
   set: (target, key, value, receiver) => {
     const oldValue = target[key]
+    //这里对setupState改值时 会遇到之前的值是ref新值是一个DOM节点或者组件实例的情况
+    //这里没有改变ref本身，只是改变ref.value的值
     if (isRef(oldValue) && !isRef(value)) {
       //这里会走ref.value 的赋值
       oldValue.value = value

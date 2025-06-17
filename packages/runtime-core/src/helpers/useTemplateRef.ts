@@ -7,10 +7,12 @@ export const knownTemplateRefs: WeakSet<ShallowRef> = new WeakSet()
 
 export type TemplateRef<T = unknown> = Readonly<ShallowRef<T | null>>
 
+//官网上推荐的组合式API中ref的用法
 export function useTemplateRef<T = unknown, Keys extends string = string>(
   key: Keys,
 ): TemplateRef<T> {
   const i = getCurrentInstance()
+  //定义一个浅ref
   const r = shallowRef(null)
   if (i) {
     const refs = i.refs === EMPTY_OBJ ? (i.refs = {}) : i.refs
@@ -22,6 +24,7 @@ export function useTemplateRef<T = unknown, Keys extends string = string>(
     ) {
       warn(`useTemplateRef('${key}') already exists.`)
     } else {
+      //定义属性
       Object.defineProperty(refs, key, {
         enumerable: true,
         get: () => r.value,
