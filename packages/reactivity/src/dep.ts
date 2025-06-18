@@ -94,6 +94,12 @@ export class Dep {
    */
   sc: number = 0
 
+  /**
+   * @internal
+   */
+  readonly __v_skip = true
+  // TODO isolatedDeclarations ReactiveFlags.SKIP
+
   constructor(public computed?: ComputedRefImpl | undefined) {
     if (__DEV__) {
       this.subsHead = undefined
