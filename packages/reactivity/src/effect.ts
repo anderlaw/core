@@ -98,7 +98,7 @@ export class ReactiveEffect<T = any>
   /**
    * @internal
    */
-  flags: EffectFlags = EffectFlags.ACTIVE | EffectFlags.TRACKING
+  flags: EffectFlags = EffectFlags.ACTIVE | EffectFlags.TRACKING //自动打开、并跟踪依赖
   /**
    * @internal
    * 下一个，串起来多个，用于批处理
@@ -138,12 +138,14 @@ export class ReactiveEffect<T = any>
    * @internal
    */
   notify(): void {
+    //正在运行的不允许递归 直接返回
     if (
       this.flags & EffectFlags.RUNNING &&
       !(this.flags & EffectFlags.ALLOW_RECURSE)
     ) {
       return
     }
+    //判断是否被通知，加入批处理
     if (!(this.flags & EffectFlags.NOTIFIED)) {
       batch(this)
     }
@@ -162,6 +164,7 @@ export class ReactiveEffect<T = any>
     prepareDeps(this)
     const prevEffect = activeSub
     const prevShouldTrack = shouldTrack
+    //改变activeSub,收集依赖
     activeSub = this
     shouldTrack = true
 
@@ -193,10 +196,12 @@ export class ReactiveEffect<T = any>
     }
   }
 
+  //dep.trigger背后的核心更新逻辑入口：调用schedeler 执行componentUpdateFn
   trigger(): void {
     if (this.flags & EffectFlags.PAUSED) {
       pausedQueueEffects.add(this)
     } else if (this.scheduler) {
+      //任务调度
       this.scheduler()
     } else {
       this.runIfDirty()
@@ -238,14 +243,16 @@ let batchDepth = 0
 let batchedSub: Subscriber | undefined
 let batchedComputed: Subscriber | undefined
 
+//通过batchedSub将多个sub串起来
 export function batch(sub: Subscriber, isComputed = false): void {
+  //标记
   sub.flags |= EffectFlags.NOTIFIED
   if (isComputed) {
     sub.next = batchedComputed
     batchedComputed = sub
     return
   }
-  //
+  //链接待批处理的sub
   sub.next = batchedSub
   batchedSub = sub
 }
@@ -262,6 +269,7 @@ export function startBatch(): void {
  * @internal
  */
 export function endBatch(): void {
+  //如果栈里还有批量任务未执行（endBatch）,直接返回等待它调用endBatch即可
   if (--batchDepth > 0) {
     return
   }
@@ -284,7 +292,9 @@ export function endBatch(): void {
     while (e) {
       const next: Subscriber | undefined = e.next
       e.next = undefined
+      //去除notified标志
       e.flags &= ~EffectFlags.NOTIFIED
+      //只trigger那些active的副作用
       if (e.flags & EffectFlags.ACTIVE) {
         try {
           // ACTIVE flag is effect-only
@@ -371,6 +381,7 @@ export function refreshComputed(computed: ComputedRefImpl): undefined {
   ) {
     return
   }
+  //移除dirty标记
   computed.flags &= ~EffectFlags.DIRTY
 
   // Global version fast path when no reactive changes has happened since
@@ -396,13 +407,16 @@ export function refreshComputed(computed: ComputedRefImpl): undefined {
   computed.flags |= EffectFlags.RUNNING
 
   const dep = computed.dep
+  //收集依赖
   const prevSub = activeSub
   const prevShouldTrack = shouldTrack
+  //将computed设置为activeSub，并通过computed.fn()来收集计算属性依赖的响应式属性；
   activeSub = computed
   shouldTrack = true
 
   try {
     prepareDeps(computed)
+    //调用并收集依赖
     const value = computed.fn(computed._value)
     if (dep.version === 0 || hasChanged(value, computed._value)) {
       computed.flags |= EffectFlags.EVALUATED

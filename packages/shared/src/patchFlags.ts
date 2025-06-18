@@ -20,12 +20,12 @@ export enum PatchFlags {
   /**
    * Indicates an element with dynamic textContent (children fast path)
    */
-  TEXT = 1,
+  TEXT = 1, //文本
 
   /**
    * Indicates an element with dynamic class binding.
    */
-  CLASS = 1 << 1,
+  CLASS = 1 << 1, //2
 
   /**
    * Indicates an element with dynamic style
@@ -38,7 +38,7 @@ export enum PatchFlags {
    * render() { return e('div', { style }) }
    * ```
    */
-  STYLE = 1 << 2,
+  STYLE = 1 << 2, //4
 
   /**
    * Indicates an element that has non-class/style dynamic props.
@@ -47,26 +47,26 @@ export enum PatchFlags {
    * array that contains the keys of the props that may change so the runtime
    * can diff them faster (without having to worry about removed props)
    */
-  PROPS = 1 << 3,
+  PROPS = 1 << 3, //8
 
   /**
    * Indicates an element with props with dynamic keys. When keys change, a full
    * diff is always needed to remove the old key. This flag is mutually
    * exclusive with CLASS, STYLE and PROPS.
    */
-  FULL_PROPS = 1 << 4,
+  FULL_PROPS = 1 << 4, //16
 
   /**
    * Indicates an element that requires props hydration
    * (but not necessarily patching)
    * e.g. event listeners & v-bind with prop modifier
    */
-  NEED_HYDRATION = 1 << 5,
+  NEED_HYDRATION = 1 << 5, //32
 
   /**
    * Indicates a fragment whose children order doesn't change.
    */
-  STABLE_FRAGMENT = 1 << 6,
+  STABLE_FRAGMENT = 1 << 6, //64
 
   /**
    * Indicates a fragment with keyed or partially keyed children

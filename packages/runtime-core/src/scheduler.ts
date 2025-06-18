@@ -20,14 +20,14 @@ export enum SchedulerJobFlags {
    * responsibility to perform recursive state mutation that eventually
    * stabilizes (#1727).
    */
-  ALLOW_RECURSE = 1 << 2,
+  ALLOW_RECURSE = 1 << 2, //允许递归
   DISPOSED = 1 << 3,
 }
 
 export interface SchedulerJob extends Function {
   id?: number
   /**
-   * flags can technically be undefined, but it can still be used in bitwise
+   * flags can technically be undefined, but it can still be used in bitwise（位运算）
    * operations just like 0.
    */
   flags?: SchedulerJobFlags
@@ -106,7 +106,7 @@ export function queueJob(job: SchedulerJob): void {
     }
 
     job.flags! |= SchedulerJobFlags.QUEUED
-
+    //冲洗队列并执行里面的任务
     queueFlush()
   }
 }
@@ -146,6 +146,7 @@ export function flushPreFlushCbs(
   for (; i < queue.length; i++) {
     const cb = queue[i]
     if (cb && cb.flags! & SchedulerJobFlags.PRE) {
+      //如果传入了组件实例 instance，但这个 Job 不是该组件的（通过比较 ID 判断），则跳过。说明当前只处理当前组件相关的任务。
       if (instance && cb.id !== instance.uid) {
         continue
       }
@@ -154,10 +155,14 @@ export function flushPreFlushCbs(
       }
       queue.splice(i, 1)
       i--
+      //如果 Job 允许递归（ALLOW_RECURSE），则将其从 QUEUED 状态移除，允许后续再次入队
       if (cb.flags! & SchedulerJobFlags.ALLOW_RECURSE) {
+        //~ 是按位非（bitwise NOT），用于对一个二进制数的每一位取反
         cb.flags! &= ~SchedulerJobFlags.QUEUED
       }
+      //执行任务
       cb()
+      //如果任务 不允许递归调用自身，在执行完后清除 QUEUED 标志，表示它不在队列中。
       if (!(cb.flags! & SchedulerJobFlags.ALLOW_RECURSE)) {
         cb.flags! &= ~SchedulerJobFlags.QUEUED
       }

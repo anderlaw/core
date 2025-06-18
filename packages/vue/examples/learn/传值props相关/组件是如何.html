@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+    <script src="../../../dist/vue.global.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script>
+      const Children = {
+        template: `<span>name:{{data}}</span>`,
+        props: ['data'],
+        beforeMount() {
+          console.log('Children beforeMount')
+        },
+        mounted() {
+          console.log('Children mounted')
+        },
+      }
+      const app = Vue.createApp({
+        template: `
+        <input v-model="inputValue" v-on:click="handleClick"/> 
+        <Children :data="inputValue"/>
+        `,
+        components: {
+          Children,
+        },
+        //data函数如何挂载到DOM中的
+        data() {
+          return {
+            show: true,
+            inputValue: '',
+          }
+        },
+        methods: {
+          handleClick() {
+            console.log(1111)
+          },
+        },
+        //如何触发watch:
+        watch: {
+          inputValue: newVal => {
+            console.log('发生了变化----》', newVal)
+          },
+        },
+        beforeMount() {
+          console.log('beforeMount')
+        },
+        mounted() {
+          console.log('mounted')
+        },
+      })
+
+      /**
+       * 参考 createAppAPI
+       * 注册的指令 放到 appContext里
+       * context.directives[name] = directive;
+       * 问题：
+       * 1.Directive 与 ObjectDirective/FunctionDirective区别？
+       * 2.DirectiveHook是什么？入参什么样的？
+       * 3.DirectiveBinding是什么？结构是什么样的？分别是啥？
+       * */
+      app.directive('my-trim', {
+        created(el, binding, vnode, preVNode) {
+          // see below for details on arguments
+          console.log('trim running')
+          console.log(el, binding, vnode)
+        },
+      })
+      app.mount('#app')
+    </script>
+  </body>
+</html>

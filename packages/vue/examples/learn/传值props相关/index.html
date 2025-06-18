@@ -15,7 +15,7 @@
 
 <script>
     const app = Vue.createApp({
-        template:`<input v-bind:value="123" v-on:xclick="handleClick"/>`,
+        template:`<input v-model="inputValue" v-on:click="handleClick"/>`,
         //data函数如何挂载到DOM中的
         data() {
             return {
@@ -25,12 +25,12 @@
         },
         methods:{
             handleClick(){
-                console.log(1111)
+                console.log(1111);
             }
         },
         //如何触发watch: 
         watch:{
-            inputValue:(newVal)=>{
+            inputValue:(newVal) => {
                 console.log('发生了变化----》',newVal)
             }
         },

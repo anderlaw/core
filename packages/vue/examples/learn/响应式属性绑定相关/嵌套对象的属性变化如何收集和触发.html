@@ -14,36 +14,34 @@
     <div id="app"></div>
 
     <script>
+      /**
+       * const data = reactive({wrapper:{number:1}})
+       * {{ data }} 不收集依赖
+       * {{ data.wrapper }} 收集 {wrapper:{number:1}}，外层的track
+       * {{ data.wrapper.number }} 收集 {wrapper:{number:1}}，外层的track"wrapper" + 收集{number:1},内层的track"number"
+       * */
       const { ref, reactive, onBeforeMount, onMounted, computed, watch } = Vue
       const app = Vue.createApp({
         // `@click="()=>increment()"` =>  `onClick: ()=>increment()`
         // `@click="increment()"` => `$event => (increment())`
         // `@click="increment"` => `()=>{ debugger; number.value++;//data.number== }`
         template: `
-        <button @click="()=>reactiveData.wrapper.number++">reactiveData.number++</button>
-        <button @click="()=>number++">number++</button>
-        <div>computed计算值上述两个值相加：{{number}}</div>
-        <div>computed计算值上述两个值相加：{{newNum}}</div>
+        <span>{{ reactiveData.wrapper.number }}</span>
+        <span>{{ length }}</span>
+        <button @click="replaceAllWrapper">reactiveData.number++</button>
         `,
         setup() {
-          const number = ref(0)
           const reactiveData = reactive({
             wrapper: {
               number: 1,
             },
           })
-          const increment = (...args) => {
-            console.log(args)
-            reactiveData.number++
-            // data.number++
+          const replaceAllWrapper = (...args) => {
+            reactiveData.wrapper = {
+              number: 2,
+            }
           }
-          const increment2 = (...args) => {
-            number.value++
-          }
-          watch(reactiveData, newVal => {
-            debugger
-            console.log('number变化了-->', newVal)
-          })
+
           onMounted(() => {
             console.log('onMounted')
           })
@@ -60,22 +58,11 @@
             } else {
               return '二者不是都大于零'
             }
-            // if (reactiveData.number) {
-            //   return 'reactiveData.number'
-            // } else if (number.value) {
-            //   return 'number.value'
-            // } else {
-            //   return 'null'
-            // }
           })
           // 将 ref 暴露给模板;绑定到setupState上
           return {
-            number,
             reactiveData,
-            newNum,
-            // data,
-            increment,
-            increment2,
+            replaceAllWrapper,
           }
         },
       })

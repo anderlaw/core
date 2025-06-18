@@ -6,6 +6,7 @@ export let activeEffectScope: EffectScope | undefined
 export class EffectScope {
   /**
    * @internal
+   * 是否处于激活状态：只有为true的状态才，一旦调用了stop方法，_active会变为false，无法再次激活了
    */
   private _active = true
   /**
@@ -20,7 +21,7 @@ export class EffectScope {
    * @internal
    */
   cleanups: (() => void)[] = []
-
+  //是否为停止状态
   private _isPaused = false
 
   /**
@@ -29,6 +30,7 @@ export class EffectScope {
    */
   parent: EffectScope | undefined
   /**
+   * 记录未分离的范围
    * record undetached scopes
    * @internal
    */
@@ -41,8 +43,11 @@ export class EffectScope {
   private index: number | undefined
 
   constructor(public detached = false) {
+    //detached：是否分离
     this.parent = activeEffectScope
+    //如果不分离：表示本scope是当前activeEffectScope的子scope
     if (!detached && activeEffectScope) {
+      //插入并获取索引
       this.index =
         (activeEffectScope.scopes || (activeEffectScope.scopes = [])).push(
           this,
@@ -53,7 +58,7 @@ export class EffectScope {
   get active(): boolean {
     return this._active
   }
-
+  //暂停
   pause(): void {
     if (this._active) {
       this._isPaused = true
@@ -70,6 +75,7 @@ export class EffectScope {
   }
 
   /**
+   * 恢复
    * Resumes the effect scope, including all child scopes and effects.
    */
   resume(): void {
@@ -88,7 +94,7 @@ export class EffectScope {
       }
     }
   }
-
+  //运行函数：1. 切换scope，2.运行fn， 3.重置scope
   run<T>(fn: () => T): T | undefined {
     if (this._active) {
       const currentEffectScope = activeEffectScope
@@ -102,7 +108,7 @@ export class EffectScope {
       warn(`cannot run an inactive effect scope.`)
     }
   }
-
+  //记录上次的作用域，off()时改回去
   prevScope: EffectScope | undefined
   /**
    * This should only be called on non-detached scopes

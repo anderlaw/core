@@ -985,6 +985,7 @@ export function registerRuntimeCompiler(_compile: any): void {
   installWithProxy = i => {
     //如果是redner函数被编译过了，那么使用withProxy代理实例的ctx对象
     if (i.render!._rc) {
+      //每个instance.ctx 都做了一层代理
       i.withProxy = new Proxy(i.ctx, RuntimeCompiledPublicInstanceProxyHandlers)
     }
   }
